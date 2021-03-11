@@ -1,0 +1,48 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Import your data & load your R packages
+
+```{r}
+
+library(readr) #This allows us to import csv files
+library(dplyr) #This is the data editing & wrangling package
+library(ggplot2) #This is ggplot2!
+export <- read_csv("export.csv")
+
+```
+
+# I've just exported this from qualtrics, this data is dirty!
+### Some of my variable names are really long, and not 1 word
+### My date is not formatted as a date
+### All my discrete variables are characters, I want them to be factors to avoid confusion
+```{r}
+export
+```
+
+# Clean your data
+## Feel free to do most of this in google sheets if you prefer
+### Just make sure you format the data properly as a date, numeric, factor etc
+
+
+```{r}
+
+ds <- export %>% # I'm creating a new data sheet called  'ds'
+  mutate(date = as.Date(.$`Recorded Date`, format = "%d/%m/%y"), # naming the `Recorded Date` variable to date, and converting the variable type to a date
+         social_follow = factor(.$`Where do you follow the FT on social media?`), # naming this variable social_follow and turning it into a factor
+         content_associate = factor(.$`Which of the following content do you associate with the FT? (Select any that apply) - Selected Choice`),
+         three_words = .$`How would you describe the FT in three words?`,
+         hold_sub = .$`Have you ever held an FT subscription?`) %>% 
+  select(date, social_follow, content_associate, three_words, hold_sub) %>% #Now only selecting the data I want to analyse
+  mutate(hold_sub = recode(hold_sub,
+                           "I signed up for a trial offer in the past, but did not continue" = "Lapsed trialist",
+                           "I used to have an FT subscription, but have since cancelled" = "Former subscriber",
+                           "I'm currently an FT subscriber" = "Current subscriber",
+                           "No" = "Never subscribed")) # I didn't like the long names for this factor so I renamed them into something more digestable
+
+
+ds
+
+```
